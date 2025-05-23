@@ -1,5 +1,4 @@
-# FlyWP Helper Plugin
+# Snoka Media Helper Plugin.
 
-FlyWP is a Docker based modern server control panel designed for WordPress.
-
-This is a helper plugin for a FlyWP WordPress website to communicate with the control panel, purge page cache and object cache.
+This is a helper plugin for a Snoka WordPress websites to communicate with the control panel, purge page cache and object cache.
+This is a fork of the FlyWP Plugin
