@@ -6,11 +6,6 @@ class Optimizations {
 
     const OPTION_KEY = 'flywp_optimizations';
 
-    /**
-     * Class constructor
-     *
-     * @return void
-     */
     public function __construct() {
         if ( ! $this->enabled() ) {
             return;
@@ -21,48 +16,22 @@ class Optimizations {
         new Optimizations\General( $this );
     }
 
-    /**
-     * Check if optimizations are enabled.
-     *
-     * @return bool
-     */
     public function enabled() {
         return $this->get_option( 'enabled' ) === true;
     }
 
-    /**
-     * Check if a feature is enabled.
-     *
-     * @param string $feature feature name
-     * @param string $group   group name
-     *
-     * @return bool
-     */
     public function feature_enabled( $feature, $group ) {
         $value = $this->get_option( $group );
 
         return $value[ $feature ] ?? false;
     }
 
-    /**
-     * Get option.
-     *
-     * @param string $key     option key
-     * @param mixed  $default default value
-     *
-     * @return mixed
-     */
     public function get_option( $key, $default = null ) {
         $options = $this->get_options();
 
         return $options[ $key ] ?? $default;
     }
 
-    /**
-     * Get options.
-     *
-     * @return array
-     */
     public function get_options() {
         $options = get_option( self::OPTION_KEY, [
             'enabled' => true,
@@ -72,7 +41,7 @@ class Optimizations {
                 'self_ping'      => true,
                 'comments'       => false,
                 'jquery_migrate' => true,
-                'clean_nav_menu' => true,
+                'clean_nav_menu' => false,
                 'rss_feed'       => false,
                 'xmlrpc'         => true,
             ],

@@ -28,20 +28,19 @@ class Plugins {
             require_once ABSPATH . 'wp-admin/includes/update.php';
         }
 
-        // Update the update cache if requested.
         if ( isset( $args['force'] ) && $args['force'] === 'true' ) {
             wp_update_plugins();
         }
 
-        $response = [];
-        $plugins  = get_plugins();
-        $updates  = get_plugin_updates();
+        $response     = [];
+        $plugins      = get_plugins();
+        $updates      = get_plugin_updates();
+        $auto_updates = get_site_option( 'auto_update_plugins', [] );
 
         foreach ( $plugins as $file => $details ) {
             $plugin_status = $this->get_status( $file );
             $update        = $this->get_update( $file, $updates );
 
-            // skip if 'all', status mismatch, or needs the 'upgrade' status, which matches truthy $update.
             if ( 'all' !== $status && $status !== $plugin_status && ( 'upgrade' !== $status || ! $update ) ) {
                 continue;
             }
@@ -58,31 +57,17 @@ class Plugins {
                 'textdomain'       => $details['TextDomain'],
                 'description'      => $details['Description'],
                 'php'              => $details['RequiresPHP'],
+                'auto_update'      => in_array( $file, $auto_updates, true ),
             ];
         }
 
         wp_send_json( $response );
     }
 
-    /**
-     * Get plugin active status.
-     *
-     * @param string $file
-     *
-     * @return string
-     */
     private function get_status( $file ) {
         return is_plugin_active( $file ) ? 'active' : 'inactive';
     }
 
-    /**
-     * Check if a plugin has an update available.
-     *
-     * @param string $plugin_file
-     * @param array  $updates
-     *
-     * @return array|bool
-     */
     private function get_update( $plugin_file, $updates ) {
         if ( isset( $updates[ $plugin_file ] ) && isset( $updates[ $plugin_file ]->update ) ) {
             return [
