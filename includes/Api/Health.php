@@ -28,6 +28,10 @@ class Health {
             require_once ABSPATH . 'wp-admin/includes/misc.php';
         }
 
+        if ( ! function_exists( 'get_home_path' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+
         WP_Debug_Data::check_for_updates();
 
         $response = WP_Debug_Data::debug_data();
