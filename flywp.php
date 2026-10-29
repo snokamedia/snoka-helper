@@ -1,12 +1,13 @@
 <?php
 /**
- * Plugin Name: FlyWP
- * Plugin URI: https://flywp.com
- * Description: Helper plugin for FlyWP
- * Version: 1.5.2
- * Author: FlyWP
- * Author URI: https://flywp.com/?utm_source=wporg&utm_medium=banner&utm_campaign=author-uri
- * License: GPL2
+ * Plugin Name: Snoka Helper
+ * Plugin URI: https://www.snoka.ca
+ * Description: Helper plugin for Snoka Media managed WordPress sites. Powered by FlyWP.
+ * Version: 1.9.0
+ * Author: Snoka Media
+ * Author URI: https://www.snoka.ca
+ * License: Proprietary
+ * ponytail: Proprietary license — not distributed on WordPress.org, Plugin Check warning ignored per project policy.
  */
 
 // Exit if accessed directly.
@@ -41,7 +42,14 @@ final class FlyWP_Plugin {
      *
      * @var string
      */
-    public $version = '1.5.2';
+    public $version = '1.9.0';
+
+    /**
+     * The reseller's brand, read once per request.
+     *
+     * @var FlyWP\Brand|null
+     */
+    private $brand = null;
 
     /**
      * Plugin Constructor.
@@ -71,6 +79,14 @@ final class FlyWP_Plugin {
         if ( ! defined( 'FLYWP_API_KEY' ) ) {
             define( 'FLYWP_API_KEY', '' );
         }
+
+        if ( ! defined( 'FLYWP_LOGIN_PUBLIC_KEY' ) ) {
+            define( 'FLYWP_LOGIN_PUBLIC_KEY', '' );
+        }
+
+        if ( ! defined( 'FLYWP_BRAND' ) ) {
+            define( 'FLYWP_BRAND', '' );
+        }
     }
 
     /**
@@ -83,6 +99,8 @@ final class FlyWP_Plugin {
         $router->register_routes();
 
         flush_rewrite_rules( false );
+
+        FlyWP\StaticSite\Bootstrap::install();
     }
 
     /**
@@ -103,6 +121,17 @@ final class FlyWP_Plugin {
      * @return void
      */
     public function init_plugin() {
+        // Loaded ahead of the API-key gate below, as it does not use the API key. It answers
+        // one POST path and does nothing on any other request.
+        new FlyWP\Frontend\MagicLogin();
+        // Also ahead of the gate: the Plugins list and core's update email read the header anyway.
+        new FlyWP\Branding();
+        // Also ahead of the gate: a full disk refuses uploads whether or not the key is set.
+        new FlyWP\Uploads();
+
+        // The static site CLI commands do not use the API key.
+        FlyWP\StaticSite\Bootstrap::register_cli();
+
         if ( ! $this->has_key() ) {
             $this->add_action( 'admin_notices', 'admin_notice' );
 
@@ -124,6 +153,7 @@ final class FlyWP_Plugin {
         $this->optimize     = new FlyWP\Optimizations();
         $this->litespeed    = new FlyWP\Litespeed();
         $this->updates_data = new FlyWP\Api\UpdatesData();
+        $this->static_site  = new FlyWP\StaticSite\Bootstrap();
     }
 
     /**
@@ -132,7 +162,8 @@ final class FlyWP_Plugin {
      * @return void
      */
     public function admin_notice() {
-        $message = __( 'Missing FlyWP API key, plugin requires an API key.', 'flywp' );
+        /* translators: %s: the plugin's name */
+        $message = sprintf( __( 'Missing %s API key, plugin requires an API key.', 'flywp' ), $this->brand()->name() );
 
         echo '<div class="notice notice-error"><p>' . esc_html( $message ) . '</p></div>';
     }
@@ -153,6 +184,47 @@ final class FlyWP_Plugin {
      */
     public function get_key() {
         return FLYWP_API_KEY;
+    }
+
+    /**
+     * Public key used to verify magic-login tokens.
+     *
+     * Set as a constant on classic WordPress. On Bedrock it may only be present in the
+     * environment, so fall back to `getenv()`.
+     *
+     * @return string
+     */
+    public function get_login_public_key() {
+        if ( FLYWP_LOGIN_PUBLIC_KEY !== '' ) {
+            return FLYWP_LOGIN_PUBLIC_KEY;
+        }
+
+        $from_env = getenv( 'FLYWP_LOGIN_PUBLIC_KEY' );
+
+        return $from_env === false ? '' : $from_env;
+    }
+
+    /**
+     * The brand of the reseller who hosts this site, if one does. Without one, FlyWP.
+     *
+     * Set as a constant on classic WordPress. On Bedrock it may only be present in the
+     * environment, so fall back to `getenv()`.
+     *
+     * @return FlyWP\Brand
+     */
+    public function brand() {
+        if ( $this->brand === null ) {
+            $value = FLYWP_BRAND !== '' ? FLYWP_BRAND : getenv( 'FLYWP_BRAND' );
+
+            // A Bedrock that loads its .env without `putenv()` has it in `$_ENV` or `$_SERVER` only.
+            if ( $value === false || $value === '' ) {
+                $value = isset( $_ENV['FLYWP_BRAND'] ) ? $_ENV['FLYWP_BRAND'] : ( isset( $_SERVER['FLYWP_BRAND'] ) ? sanitize_text_field( wp_unslash( $_SERVER['FLYWP_BRAND'] ) ) : '' );
+            }
+
+            $this->brand = FlyWP\Brand::decode( $value );
+        }
+
+        return $this->brand;
     }
 }
 
