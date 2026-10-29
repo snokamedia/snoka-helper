@@ -4,8 +4,18 @@ namespace FlyWP\Optimizations;
 
 class General extends Base {
 
+    /**
+     * Group name
+     *
+     * @var string
+     */
     protected $group = 'general';
 
+    /**
+     * Features to remove.
+     *
+     * @var array
+     */
     protected $features = [
         'emoji'           => 'remove_emoji',
         'oembed'          => 'remove_embed',
@@ -17,6 +27,11 @@ class General extends Base {
         'xmlrpc'          => 'remove_xmlrpc',
     ];
 
+    /**
+     * Remove emoji scripts.
+     *
+     * @return void
+     */
     public function remove_emoji() {
         remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
         remove_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -28,11 +43,17 @@ class General extends Base {
 
         add_filter( 'emoji_svg_url', '__return_false' );
 
+        // Remove from TinyMCE
         add_filter( 'tiny_mce_plugins', function ( $plugins ) {
             return is_array( $plugins ) ? array_diff( $plugins, [ 'wpemoji' ] ) : [];
         } );
     }
 
+    /**
+     * Remove embed scripts.
+     *
+     * @return void
+     */
     public function remove_embed() {
         remove_action( 'wp_head', 'wp_oembed_add_host_js' );
         remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
@@ -42,6 +63,11 @@ class General extends Base {
         remove_filter( 'oembed_dataparse', 'wp_filter_oembed_result' );
     }
 
+    /**
+     * Disable self ping.
+     *
+     * @return void
+     */
     public function disable_self_ping() {
         add_action( 'pre_ping', function ( &$links ) {
             $home = get_option( 'home' );
@@ -54,15 +80,26 @@ class General extends Base {
         } );
     }
 
+    /**
+     * Disable comments.
+     *
+     * @return void
+     */
     public function disable_comments() {
         add_filter( 'comments_open', '__return_false', 20, 2 );
         add_filter( 'pings_open', '__return_false', 20, 2 );
 
+        // Remove comments feed
         add_filter( 'feed_links_show_comments_feed', '__return_false' );
         add_filter( 'post_comments_feed_link', '__return_false' );
         add_filter( 'comments_link_feed', '__return_false' );
     }
 
+    /**
+     * Remove jQuery Migrate.
+     *
+     * @return void
+     */
     public function remove_jquery_migrate() {
         add_action( 'wp_default_scripts', function ( $scripts ) {
             if ( isset( $scripts->registered['jquery'] ) ) {
@@ -75,6 +112,11 @@ class General extends Base {
         } );
     }
 
+    /**
+     * Clean navigation menu.
+     *
+     * @return void
+     */
     public function clean_nav_menu() {
         add_filter( 'nav_menu_css_class', function ( $classes ) {
             if ( ! is_array( $classes ) ) {
@@ -90,6 +132,11 @@ class General extends Base {
         } );
     }
 
+    /**
+     * Remove RSS feed links.
+     *
+     * @return void
+     */
     public function remove_rss_feed() {
         add_action( 'template_redirect', function () {
             if ( is_feed() ) {
@@ -99,6 +146,11 @@ class General extends Base {
         }, 1 );
     }
 
+    /**
+     * Remove XML-RPC.
+     *
+     * @return void
+     */
     public function remove_xmlrpc() {
         add_filter( 'xmlrpc_enabled', '__return_false' );
     }
