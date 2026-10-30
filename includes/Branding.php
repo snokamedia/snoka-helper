@@ -15,7 +15,7 @@ class Branding {
      * Class constructor.
      */
     public function __construct() {
-        if ( ! flywp()->brand()->is_set() ) {
+        if ( ! flywp()->brand()->is_set() && Visibility::can_see() ) {
             return;
         }
 
@@ -26,14 +26,17 @@ class Branding {
     }
 
     /**
-     * This plugin's row in the Plugins list, under the brand.
+     * This plugin's row in the Plugins list. Removed entirely for anyone but
+     * the designated user; rebranded under a brand for them.
      *
      * @param array $plugins
      *
      * @return array
      */
     public function all_plugins( $plugins ) {
-        if ( isset( $plugins[ FLYWP_PLUGIN_BASENAME ] ) ) {
+        if ( isset( $plugins[ FLYWP_PLUGIN_BASENAME ] ) && ! Visibility::can_see() ) {
+            unset( $plugins[ FLYWP_PLUGIN_BASENAME ] );
+        } elseif ( isset( $plugins[ FLYWP_PLUGIN_BASENAME ] ) ) {
             $plugins[ FLYWP_PLUGIN_BASENAME ] = self::row( $plugins[ FLYWP_PLUGIN_BASENAME ] );
         }
 
@@ -64,7 +67,9 @@ class Branding {
     }
 
     /**
-     * Core's plugin update email, with the brand on this plugin's line and without its wp.org link.
+     * Core's plugin update email. This plugin's line is removed for anyone but
+     * the designated user (cron has no current user, so it reads as hidden);
+     * rebranded under a brand for them.
      *
      * The line is rebuilt the way core builds it, with core's own translated format, so it is
      * found in any language and only for this plugin, never for another one named "FlyWP …".
@@ -87,22 +92,31 @@ class Branding {
                     continue;
                 }
 
-                $url  = empty( $item->item->url ) ? '' : ' : ' . esc_url( $item->item->url );
-                $name = flywp()->brand()->name();
+                $url = empty( $item->item->url ) ? '' : ' : ' . esc_url( $item->item->url );
 
                 // phpcs:disable WordPress.WP.I18n.MissingArgDomain -- core's own strings, to match core's line.
                 if ( ! empty( $item->item->current_version ) ) {
                     /* translators: 1: Plugin name, 2: Current version number, 3: New version number, 4: Plugin URL. */
                     $format = __( '- %1$s (from version %2$s to %3$s)%4$s' );
                     $core   = sprintf( $format, html_entity_decode( $item->name ), $item->item->current_version, $item->item->new_version, $url );
-                    $brand  = sprintf( $format, $name, $item->item->current_version, $item->item->new_version, '' );
                 } else {
                     /* translators: 1: Plugin name, 2: Version number, 3: Plugin URL. */
                     $format = __( '- %1$s version %2$s%3$s' );
                     $core   = sprintf( $format, html_entity_decode( $item->name ), $item->item->new_version, $url );
-                    $brand  = sprintf( $format, $name, $item->item->new_version, '' );
                 }
                 // phpcs:enable
+
+                if ( ! Visibility::can_see() ) {
+                    $email['body'] = str_replace( [ $core . "\n", $core ], '', $email['body'] );
+                    continue;
+                }
+
+                $name  = flywp()->brand()->name();
+                $brand = ! empty( $item->item->current_version )
+                    // phpcs:disable WordPress.WP.I18n.MissingArgDomain -- core's own strings, to match core's line.
+                    ? sprintf( $format, $name, $item->item->current_version, $item->item->new_version, '' )
+                    : sprintf( $format, $name, $item->item->new_version, '' );
+                    // phpcs:enable
 
                 $email['body'] = str_replace( $core, $brand, $email['body'] );
             }
@@ -112,14 +126,37 @@ class Branding {
     }
 
     /**
-     * Site Health → Info, with the brand on this plugin's entry.
+     * Site Health → Info. This plugin's entry is removed for anyone but the
+     * designated user; rebranded under a brand for them.
      *
      * @param array $info
      *
      * @return array
      */
     public function site_health( $info ) {
-        return is_array( $info ) ? flywp()->brand()->site_health( $info ) : $info;
+        if ( ! is_array( $info ) ) {
+            return $info;
+        }
+
+        if ( ! Visibility::can_see() ) {
+            $names = [ Brand::DEFAULT_NAME ];
+
+            if ( function_exists( 'get_plugin_data' ) ) {
+                $data = get_plugin_data( FLYWP_PLUGIN_FILE, false, false );
+
+                if ( ! empty( $data['Name'] ) ) {
+                    $names[] = $data['Name'];
+                }
+            }
+
+            foreach ( $names as $name ) {
+                unset( $info['wp-plugins-active']['fields'][ $name ] );
+            }
+
+            return $info;
+        }
+
+        return flywp()->brand()->site_health( $info );
     }
 
     /**

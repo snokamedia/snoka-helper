@@ -2,6 +2,8 @@
 
 namespace FlyWP\Admin;
 
+use FlyWP\Visibility;
+
 class Plugins {
 
     /**
@@ -19,6 +21,10 @@ class Plugins {
      * @return array
      */
     public function links( $links ) {
+        if ( ! Visibility::can_see() ) {
+            return $links;
+        }
+
         $links[] = sprintf(
             '<a href="%s">%s</a>',
             flywp()->admin->page_url(),

@@ -24,6 +24,7 @@ class Admin {
      */
     public function __construct() {
         add_action( 'admin_menu', [ $this, 'register_admin_page' ] );
+        add_action( 'admin_init', [ $this, 'block_direct_access' ] );
 
         $this->fastcgi   = new Admin\Fastcgi_Cache();
         $this->litespeed = new Admin\Litespeed();
@@ -39,6 +40,10 @@ class Admin {
      * Register admin page.
      */
     public function register_admin_page() {
+        if ( ! Visibility::can_see() ) {
+            return;
+        }
+
         // WordPress prints a menu title as HTML: the brand's name is text.
         $hook = add_dashboard_page(
             esc_html( flywp()->brand()->name() ),
@@ -51,6 +56,21 @@ class Admin {
         add_action( "admin_print_styles-{$hook}", [ $this, 'enqueue_styles' ] );
         add_action( "admin_print_scripts-{$hook}", [ $this, 'enqueue_js' ] );
         add_filter( 'removable_query_args', [ $this, 'removable_query_args' ] );
+    }
+
+    /**
+     * Block direct URL access to the settings page for anyone but the
+     * designated user.
+     *
+     * @return void
+     */
+    public function block_direct_access() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+
+        if ( $page === self::PAGE_SLUG && ! Visibility::can_see() ) {
+            wp_die( esc_html__( 'You do not have permission to access this page.', 'flywp' ) );
+        }
     }
 
     /**

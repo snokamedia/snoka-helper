@@ -15,7 +15,8 @@ require_once __DIR__ . '/stubs/wordpress.php';
 class BrandingTest extends TestCase {
 
     protected function setUp(): void {
-        $GLOBALS['flywp_test_filters'] = [];
+        $GLOBALS['flywp_test_filters']    = [];
+        $GLOBALS['flywp_test_user_login'] = 'csadmin';
         $this->brand( [ 'name' => 'Acme Cloud', 'url' => 'https://acme.flywp.xyz' ] );
     }
 
@@ -93,13 +94,70 @@ class BrandingTest extends TestCase {
         );
     }
 
-    public function test_a_name_with_regex_or_format_characters_is_written_as_it_is() {
-        $this->brand( [ 'name' => 'Acme $1 \\ 100% Cloud', 'url' => 'https://acme.test' ] );
+    public function test_a_name_with_regex_or_format_characters_is_written_as_it_is() {        $this->brand( [ 'name' => 'Acme $1 \\ 100% Cloud', 'url' => 'https://acme.test' ] );
         $item  = (object) [ 'name' => 'FlyWP', 'item' => (object) [ 'plugin' => 'flywp/flywp.php', 'current_version' => '1.7.1', 'new_version' => '1.7.2', 'url' => '' ] ];
 
         $email = ( new Branding() )->update_email( [ 'body' => '- FlyWP (from version 1.7.1 to 1.7.2)' ], 'success', [ 'plugin' => [ $item ] ], [] );
 
         $this->assertSame( '- Acme $1 \\ 100% Cloud (from version 1.7.1 to 1.7.2)', $email['body'] );
+    }
+
+    public function test_hidden_user_still_registers_hooks_without_a_brand() {
+        $GLOBALS['flywp_test_plugin']     = $this->plugin( Brand::decode( '' ) );
+        $GLOBALS['flywp_test_user_login'] = 'clientadmin';
+
+        new Branding();
+
+        $this->assertSame(
+            [ 'all_plugins' => 1, 'plugin_row_meta' => 2, 'auto_plugin_theme_update_email' => 4, 'debug_information' => 1 ],
+            $GLOBALS['flywp_test_filters']
+        );
+    }
+
+    public function test_hidden_user_sees_no_plugin_row() {
+        $GLOBALS['flywp_test_user_login'] = 'clientadmin';
+
+        $plugins = ( new Branding() )->all_plugins(
+            [
+                'flywp/flywp.php'     => [ 'Name' => 'FlyWP', 'Author' => 'FlyWP', 'Version' => '1.7.1' ],
+                'akismet/akismet.php' => [ 'Name' => 'Akismet', 'Author' => 'Automattic', 'Version' => '5.1' ],
+            ]
+        );
+
+        $this->assertArrayNotHasKey( 'flywp/flywp.php', $plugins );
+        $this->assertSame( [ 'Name' => 'Akismet', 'Author' => 'Automattic', 'Version' => '5.1' ], $plugins['akismet/akismet.php'] );
+    }
+
+    public function test_hidden_user_update_email_loses_this_plugins_line() {
+        $GLOBALS['flywp_test_user_login'] = 'clientadmin';
+        $item                             = (object) [ 'name' => 'FlyWP', 'item' => (object) [ 'plugin' => 'flywp/flywp.php', 'current_version' => '1.7.1', 'new_version' => '1.7.2', 'url' => 'https://wordpress.org/plugins/flywp/' ] ];
+
+        $email = ( new Branding() )->update_email(
+            [ 'body' => "These plugins are now up to date:\n- FlyWP (from version 1.7.1 to 1.7.2) : https://wordpress.org/plugins/flywp/\n- Done." ],
+            'success',
+            [ 'plugin' => [ $item ] ],
+            []
+        );
+
+        $this->assertSame( "These plugins are now up to date:\n- Done.", $email['body'] );
+    }
+
+    public function test_hidden_user_site_health_loses_this_plugins_entry() {
+        $GLOBALS['flywp_test_user_login'] = 'clientadmin';
+
+        $info = ( new Branding() )->site_health(
+            [
+                'wp-plugins-active' => [
+                    'fields' => [
+                        'FlyWP'   => [ 'label' => 'FlyWP', 'value' => 'FlyWP version 1.7.1' ],
+                        'Akismet' => [ 'label' => 'Akismet', 'value' => 'Akismet version 5.1' ],
+                    ],
+                ],
+            ]
+        );
+
+        $this->assertArrayNotHasKey( 'FlyWP', $info['wp-plugins-active']['fields'] );
+        $this->assertArrayHasKey( 'Akismet', $info['wp-plugins-active']['fields'] );
     }
 
     private function brand( array $brand ) {

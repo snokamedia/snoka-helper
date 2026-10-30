@@ -8,6 +8,16 @@ if ( ! defined( 'FLYWP_PLUGIN_BASENAME' ) ) {
     define( 'FLYWP_PLUGIN_BASENAME', 'flywp/flywp.php' );
 }
 
+if ( ! defined( 'SNOKA_ADMIN_USER' ) ) {
+    define( 'SNOKA_ADMIN_USER', 'csadmin' );
+}
+
+if ( ! function_exists( 'wp_get_current_user' ) ) {
+    function wp_get_current_user() {
+        return (object) [ 'user_login' => $GLOBALS['flywp_test_user_login'] ?? 'csadmin' ];
+    }
+}
+
 if ( ! function_exists( '__' ) ) {
     function __( $text, $domain = 'default' ) {
         return $text;

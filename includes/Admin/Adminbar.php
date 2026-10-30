@@ -2,6 +2,7 @@
 
 namespace FlyWP\Admin;
 
+use FlyWP\Visibility;
 use WP_Admin_Bar;
 
 class Adminbar {
@@ -19,7 +20,7 @@ class Adminbar {
      * @param WP_Admin_Bar $wp_admin_bar
      */
     public function admin_bar_menu( $wp_admin_bar ) {
-        if ( ! current_user_can( 'manage_options' ) ) {
+        if ( ! current_user_can( 'manage_options' ) || ! Visibility::can_see() ) {
             return;
         }
 

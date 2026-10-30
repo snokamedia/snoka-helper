@@ -87,6 +87,10 @@ final class FlyWP_Plugin {
         if ( ! defined( 'FLYWP_BRAND' ) ) {
             define( 'FLYWP_BRAND', '' );
         }
+
+        if ( ! defined( 'SNOKA_ADMIN_USER' ) ) {
+            define( 'SNOKA_ADMIN_USER', '' );
+        }
     }
 
     /**
@@ -162,6 +166,10 @@ final class FlyWP_Plugin {
      * @return void
      */
     public function admin_notice() {
+        if ( ! FlyWP\Visibility::can_see() ) {
+            return;
+        }
+
         /* translators: %s: the plugin's name */
         $message = sprintf( __( 'Missing %s API key, plugin requires an API key.', 'flywp' ), $this->brand()->name() );
 
