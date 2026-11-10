@@ -31,4 +31,15 @@ class VisibilityTest extends TestCase {
 
         $this->assertFalse( Visibility::can_see() );
     }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_wp_cli_sees_without_a_user() {
+        define( 'WP_CLI', true );
+        $GLOBALS['flywp_test_user_login'] = '';
+
+        $this->assertTrue( Visibility::can_see() );
+    }
 }

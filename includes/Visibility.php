@@ -19,9 +19,17 @@ class Visibility {
     /**
      * Whether the current user may see the plugin.
      *
+     * WP-CLI always sees it: CLI operators are server administrators (FlyWP
+     * itself manages plugins over SSH), never end users in a browser. HTTP
+     * cron has no WP_CLI constant, so scheduled emails stay hidden.
+     *
      * @return bool
      */
     public static function can_see() {
+        if ( defined( 'WP_CLI' ) && WP_CLI ) {
+            return true;
+        }
+
         if ( ! defined( 'SNOKA_ADMIN_USER' ) || (string) SNOKA_ADMIN_USER === '' ) {
             return false;
         }
