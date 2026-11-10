@@ -31,7 +31,7 @@ class Brand {
     /**
      * This plugin's own logo, used whenever no brand icon is set.
      */
-    const DEFAULT_ICON_PATH = 'assets/images/logo.png';
+    const DEFAULT_ICON_PATH = 'assets/logo.png';
 
     /**
      * The footer of `views/email-template.html` without a brand: this fork's own name.

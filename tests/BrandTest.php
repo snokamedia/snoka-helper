@@ -40,7 +40,7 @@ class BrandTest extends TestCase {
         $this->assertFalse( $brand->is_set() );
         $this->assertSame( 'Snoka Media', $brand->name() );
         $this->assertSame( 'https://www.snoka.ca', $brand->url() );
-        $this->assertSame( 'https://example.test/wp-content/plugins/snoka-helper/assets/images/logo.png', $brand->icon() );
+        $this->assertSame( 'https://example.test/wp-content/plugins/snoka-helper/assets/logo.png', $brand->icon() );
         $this->assertSame( 'https://app.flywp.com/site/7', $brand->dashboard_url( 7 ) );
         $this->assertSame( 'https://app.flywp.com', $brand->dashboard_url() );
         // As before brands: a site info with id 0 still names it.
@@ -154,7 +154,7 @@ class BrandTest extends TestCase {
         $snoka = Brand::decode( '' )->email_html( $template );
 
         $this->assertStringNotContainsString( '{{brand_', $snoka );
-        $this->assertStringContainsString( '<img src="https://example.test/wp-content/plugins/snoka-helper/assets/images/logo.png" alt="Snoka Media"', $snoka );
+        $this->assertStringContainsString( '<img src="https://example.test/wp-content/plugins/snoka-helper/assets/logo.png" alt="Snoka Media"', $snoka );
         $this->assertStringContainsString( 'href="https://www.snoka.ca"', $snoka );
         $this->assertStringContainsString( 'Snoka Media', $snoka );
         $this->assertStringNotContainsString( 'FlyWP', $snoka );
