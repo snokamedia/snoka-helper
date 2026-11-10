@@ -149,14 +149,14 @@ class BrandingTest extends TestCase {
             [
                 'wp-plugins-active' => [
                     'fields' => [
-                        'FlyWP'   => [ 'label' => 'FlyWP', 'value' => 'FlyWP version 1.7.1' ],
-                        'Akismet' => [ 'label' => 'Akismet', 'value' => 'Akismet version 5.1' ],
+                        'Snoka Helper' => [ 'label' => 'Snoka Helper', 'value' => 'Snoka Helper version 1.9.1' ],
+                        'Akismet'      => [ 'label' => 'Akismet', 'value' => 'Akismet version 5.1' ],
                     ],
                 ],
             ]
         );
 
-        $this->assertArrayNotHasKey( 'FlyWP', $info['wp-plugins-active']['fields'] );
+        $this->assertArrayNotHasKey( 'Snoka Helper', $info['wp-plugins-active']['fields'] );
         $this->assertArrayHasKey( 'Akismet', $info['wp-plugins-active']['fields'] );
     }
 

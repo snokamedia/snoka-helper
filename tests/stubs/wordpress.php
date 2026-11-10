@@ -8,6 +8,14 @@ if ( ! defined( 'FLYWP_PLUGIN_BASENAME' ) ) {
     define( 'FLYWP_PLUGIN_BASENAME', 'flywp/flywp.php' );
 }
 
+if ( ! defined( 'FLYWP_PLUGIN_URL' ) ) {
+    define( 'FLYWP_PLUGIN_URL', 'https://example.test/wp-content/plugins/snoka-helper/' );
+}
+
+if ( ! defined( 'FLYWP_PLUGIN_FILE' ) ) {
+    define( 'FLYWP_PLUGIN_FILE', dirname( __DIR__, 2 ) . '/flywp.php' );
+}
+
 if ( ! defined( 'SNOKA_ADMIN_USER' ) ) {
     define( 'SNOKA_ADMIN_USER', 'csadmin' );
 }
@@ -27,6 +35,12 @@ if ( ! function_exists( '__' ) ) {
 if ( ! function_exists( 'esc_url' ) ) {
     function esc_url( $url ) {
         return $url;
+    }
+}
+
+if ( ! function_exists( 'get_plugin_data' ) ) {
+    function get_plugin_data( $file, $markup = true, $translate = true ) {
+        return [ 'Name' => 'Snoka Helper' ];
     }
 }
 

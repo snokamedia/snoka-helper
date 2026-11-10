@@ -9,7 +9,7 @@ use FlyWP\Helper;
             <div class="fw-flex fw-py-2 fw-items-center fw-justify-between">
                 <h1 class="fw-text-2xl fw-font-semibold fw-flex-1">
                     <?php if ( ! flywp()->brand()->is_set() ) { ?>
-                        <img src="<?php echo esc_url( FLYWP_PLUGIN_URL . 'assets/images/flywp-logo.svg' ); ?>" alt="FlyWP" class="fw-h-11 fw-mr-2 fw-inline-block">
+                        <img src="<?php echo esc_url( flywp()->brand()->icon() ); ?>" alt="Snoka Media" class="fw-h-11 fw-mr-2 fw-inline-block">
                     <?php } else { ?>
                         <?php if ( flywp()->brand()->icon() !== '' ) { ?>
                             <img src="<?php echo esc_url( flywp()->brand()->icon() ); ?>" alt="" class="fw-h-11 fw-mr-2 fw-inline-block">

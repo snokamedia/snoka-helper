@@ -5,11 +5,15 @@ namespace FlyWP\Tests;
 use FlyWP\Brand;
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__ . '/stubs/wordpress.php';
+
 /**
  * The brand a reseller gives their customers' sites. `FLYWP_BRAND` is a contract with the FlyWP
  * control plane, which lives in another repository, so this pins one fixed vector that the
  * control plane's own suite asserts byte for byte. Regenerating it to make the test pass means
  * changing the format, and the control plane has to change with it.
+ *
+ * Without a brand the plugin shows this fork's own default brand (Snoka).
  */
 class BrandTest extends TestCase {
 
@@ -26,17 +30,17 @@ class BrandTest extends TestCase {
     }
 
     /**
-     * Without a brand the plugin shows exactly what it showed before brands existed.
+     * Without a brand the plugin shows this fork's own default brand (Snoka).
      *
      * @dataProvider no_brand
      */
-    public function test_anything_that_is_not_a_brand_is_flywp( $encoded ) {
+    public function test_anything_that_is_not_a_brand_is_snoka( $encoded ) {
         $brand = Brand::decode( $encoded );
 
         $this->assertFalse( $brand->is_set() );
-        $this->assertSame( 'FlyWP', $brand->name() );
-        $this->assertSame( 'https://flywp.com', $brand->url() );
-        $this->assertSame( '', $brand->icon() );
+        $this->assertSame( 'Snoka Media', $brand->name() );
+        $this->assertSame( 'https://www.snoka.ca', $brand->url() );
+        $this->assertSame( 'https://example.test/wp-content/plugins/snoka-helper/assets/images/logo.png', $brand->icon() );
         $this->assertSame( 'https://app.flywp.com/site/7', $brand->dashboard_url( 7 ) );
         $this->assertSame( 'https://app.flywp.com', $brand->dashboard_url() );
         // As before brands: a site info with id 0 still names it.
@@ -144,19 +148,18 @@ class BrandTest extends TestCase {
         $this->assertSame( 'flywp', $branded['TextDomain'] );
     }
 
-    public function test_the_test_email_template_shows_flywp_without_a_brand_and_the_brand_with_one() {
+    public function test_the_test_email_template_shows_snoka_without_a_brand_and_the_brand_with_one() {
         $template = file_get_contents( dirname( __DIR__ ) . '/views/email-template.html' );
 
-        $flywp = Brand::decode( '' )->email_html( $template );
+        $snoka = Brand::decode( '' )->email_html( $template );
 
-        // Byte for byte the template this plugin sent before brands existed.
-        $this->assertSame( file_get_contents( __DIR__ . '/fixtures/email-template-1.7.1.html' ), $flywp );
-
-        $this->assertStringContainsString( Brand::DEFAULT_EMAIL_LOGO, $flywp );
-        $this->assertStringContainsString( 'href="https://flywp.com"', $flywp );
-        $this->assertStringContainsString( 'FlyWP, Inc.', $flywp );
-        $this->assertStringContainsString( 'Dover, DE 19901', $flywp );
-        $this->assertStringNotContainsString( '{{brand_', $flywp );
+        $this->assertStringNotContainsString( '{{brand_', $snoka );
+        $this->assertStringContainsString( '<img src="https://example.test/wp-content/plugins/snoka-helper/assets/images/logo.png" alt="Snoka Media"', $snoka );
+        $this->assertStringContainsString( 'href="https://www.snoka.ca"', $snoka );
+        $this->assertStringContainsString( 'Snoka Media', $snoka );
+        $this->assertStringNotContainsString( 'FlyWP', $snoka );
+        $this->assertStringNotContainsString( 'flywp.com', $snoka );
+        $this->assertStringNotContainsString( 'Dover', $snoka );
 
         $branded = Brand::decode( self::VECTOR )->email_html( $template );
 
@@ -180,9 +183,9 @@ class BrandTest extends TestCase {
         $info = [
             'wp-plugins-active' => [
                 'fields' => [
-                    'Akismet' => [ 'label' => 'Akismet', 'value' => 'Version 5.1 by Automattic' ],
-                    'FlyWP'   => [ 'label' => 'FlyWP', 'value' => 'Version 1.7.1 by FlyWP', 'debug' => 'version: 1.7.1, author: FlyWP' ],
-                    'Zephyr'  => [ 'label' => 'Zephyr', 'value' => 'Version 1.0 by Z' ],
+                    'Akismet'      => [ 'label' => 'Akismet', 'value' => 'Version 5.1 by Automattic' ],
+                    'Snoka Media'  => [ 'label' => 'Snoka Media', 'value' => 'Version 1.7.1 by Snoka Media', 'debug' => 'version: 1.7.1, author: Snoka Media' ],
+                    'Zephyr'       => [ 'label' => 'Zephyr', 'value' => 'Version 1.0 by Z' ],
                 ],
             ],
         ];
@@ -191,7 +194,7 @@ class BrandTest extends TestCase {
 
         $fields = Brand::decode( $this->encode( [ 'name' => 'Acme', 'url' => 'https://acme.test' ] ) )->site_health( $info )['wp-plugins-active']['fields'];
 
-        $this->assertArrayNotHasKey( 'FlyWP', $fields );
+        $this->assertArrayNotHasKey( 'Snoka Media', $fields );
         $this->assertSame( [ 'label' => 'Acme', 'value' => 'Version 1.7.1 by Acme', 'debug' => 'version: 1.7.1, author: Acme' ], $fields['Acme'] );
         $this->assertSame( $info['wp-plugins-active']['fields']['Akismet'], $fields['Akismet'] );
         // In its place in the list.

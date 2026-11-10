@@ -12,14 +12,14 @@ namespace FlyWP;
  * that the control plane's own suite asserts too.
  *
  * No WordPress function is called here, so the rules are unit tested without WordPress. A value
- * that does not decode to a name is no brand: the plugin then shows FlyWP, the same as before
- * brands existed. A brand with no https URL links to no dashboard.
+ * that does not decode to a name is no brand: the plugin then shows this fork's own default
+ * brand (Snoka), the same as before brands existed.
  */
 class Brand {
 
-    const DEFAULT_NAME = 'FlyWP';
+    const DEFAULT_NAME = 'Snoka Media';
 
-    const DEFAULT_URL = 'https://flywp.com';
+    const DEFAULT_URL = 'https://www.snoka.ca';
 
     const DEFAULT_DASHBOARD_URL = 'https://app.flywp.com';
 
@@ -29,13 +29,20 @@ class Brand {
     const WPORG_URL = 'https://wordpress.org/plugins/flywp/';
 
     /**
-     * The footer of `views/email-template.html` without a brand: FlyWP's company and address.
-     * Under a brand, the brand's name alone.
+     * This plugin's own logo, used whenever no brand icon is set.
      */
-    const DEFAULT_EMAIL_COMPANY = "FlyWP, Inc.\n                                            <br />8 The Green\n                                            <br />Dover, DE 19901";
+    const DEFAULT_ICON_PATH = 'assets/images/logo.png';
 
     /**
-     * The masthead of `views/email-template.html` without a brand.
+     * The footer of `views/email-template.html` without a brand: this fork's own name.
+     * Under a brand, the brand's name alone.
+     */
+    const DEFAULT_EMAIL_COMPANY = 'Snoka Media';
+
+    /**
+     * The masthead of `views/email-template.html` without a brand and without a
+     * plugin URL to build the local logo from (unit tests, mostly). In practice
+     * `default_email_logo()` serves this plugin's own logo.png instead.
      */
     const DEFAULT_EMAIL_LOGO = '<img src="https://app.flywp.com/assets/images/logo.svg" alt="FlyWP"' . "\n" . '                                    style="width: 150px; max-width: 100%; margin: 0; padding: 0; -premailer-width: 94px; -premailer-cellpadding: 0; -premailer-cellspacing: 0;">';
 
@@ -118,12 +125,44 @@ class Brand {
     }
 
     /**
-     * The brand's icon, or '' for none. Never FlyWP's logo under a brand.
+     * The brand's icon: its own when set; this plugin's logo.png when no brand
+     * is set; '' for a brand with none (never another logo under a brand).
      *
      * @return string
      */
     public function icon() {
-        return $this->icon;
+        if ( $this->icon !== '' ) {
+            return $this->icon;
+        }
+
+        return $this->is_set() ? '' : self::default_logo_url();
+    }
+
+    /**
+     * Absolute URL of this plugin's own logo.png, or '' where the plugin URL
+     * is unknown (outside WordPress).
+     *
+     * @return string
+     */
+    public static function default_logo_url() {
+        return defined( 'FLYWP_PLUGIN_URL' ) ? FLYWP_PLUGIN_URL . self::DEFAULT_ICON_PATH : '';
+    }
+
+    /**
+     * Masthead image for `views/email-template.html` without a brand: this
+     * plugin's own logo.png, or the legacy remote logo where the plugin URL
+     * is unknown (outside WordPress).
+     *
+     * @return string
+     */
+    public static function default_email_logo() {
+        $src = self::default_logo_url();
+
+        if ( $src === '' ) {
+            return self::DEFAULT_EMAIL_LOGO;
+        }
+
+        return '<img src="' . $src . '" alt="Snoka Media"' . "\n" . '                                    style="width: 150px; max-width: 100%; margin: 0; padding: 0; -premailer-width: 94px; -premailer-cellpadding: 0; -premailer-cellspacing: 0;">';
     }
 
     /**
@@ -168,8 +207,9 @@ class Brand {
     }
 
     /**
-     * `views/email-template.html` with its `{{brand_*}}` places filled: FlyWP's text and logo
-     * without a brand; the brand's name and icon, or its name for no icon, with one.
+     * `views/email-template.html` with its `{{brand_*}}` places filled: this
+     * fork's name and logo.png without a brand; the brand's name and icon, or
+     * its name for no icon, with one.
      *
      * @param string $template
      *
@@ -180,7 +220,7 @@ class Brand {
             return strtr(
                 $template,
                 [
-                    '{{brand_logo}}'    => self::DEFAULT_EMAIL_LOGO,
+                    '{{brand_logo}}'    => self::default_email_logo(),
                     '{{brand_url}}'     => self::DEFAULT_URL,
                     '{{brand_name}}'    => self::DEFAULT_NAME,
                     '{{brand_company}}' => self::DEFAULT_EMAIL_COMPANY,
