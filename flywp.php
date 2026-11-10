@@ -3,7 +3,7 @@
  * Plugin Name: Snoka Helper
  * Plugin URI: https://www.snoka.ca
  * Description: Helper plugin for Snoka Media managed WordPress sites. Powered by FlyWP.
- * Version: 1.9.0
+ * Version: 1.9.1
  * Author: Snoka Media
  * Author URI: https://www.snoka.ca
  * License: Proprietary
@@ -42,7 +42,7 @@ final class FlyWP_Plugin {
      *
      * @var string
      */
-    public $version = '1.9.0';
+    public $version = '1.9.1';
 
     /**
      * The reseller's brand, read once per request.
