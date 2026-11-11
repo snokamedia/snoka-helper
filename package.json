@@ -7,11 +7,11 @@
   "author": "FlyWP <hello@flywp.com>",
   "license": "MIT",
   "scripts": {
-    "makepot": "wp i18n make-pot --exclude='dist,node_modules,vendors' . --headers='{\"Last-Translator\":\"support@flywp.com\",\"Report-Msgid-Bugs-To\":\"https://github.com/flywp/flywp-helper/issues\"}' --file-comment=\"Copyright (c) $(date +'%Y') FlyWP. All Rights Reserved.\" languages/flywp.pot",
+    "makepot": "wp i18n make-pot --exclude='dist,node_modules,vendors' . --headers='{\"Last-Translator\":\"Snoka Media <info@snoka.ca>\",\"Report-Msgid-Bugs-To\":\"https://github.com/snokamedia/snoka-helper/issues\"}' --file-comment=\"Copyright (c) $(date +'%Y') Snoka Media. All Rights Reserved.\" languages/flywp.pot",
     "watch:css": "tailwindcss -i assets/css/tailwind-base.css -o assets/css/app.css --watch",
     "build:css": "tailwindcss build -i assets/css/tailwind-base.css -o assets/css/app.min.css --minify",
     "build:js": "uglifyjs assets/js/admin.js --compress --mangle -o assets/js/admin.min.js",
-    "build": "yarn build:css && yarn build:js && yarn makepot"
+    "build": "pnpm run build:css && pnpm run build:js && pnpm run makepot"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",
