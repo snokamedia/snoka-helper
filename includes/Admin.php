@@ -124,44 +124,9 @@ class Admin {
         ];
 
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        $tab          = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : '';
-        $active_tab   = array_key_exists( $tab, $tabs ) ? $tab : 'cache';
-        $site_info    = $this->fetch_site_info();
-        $app_site_url = $this->get_site_url( $site_info );
+        $tab        = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : '';
+        $active_tab = array_key_exists( $tab, $tabs ) ? $tab : 'cache';
 
         include FLYWP_PLUGIN_DIR . '/views/admin.php';
-    }
-
-    /**
-     * Fetch site info.
-     *
-     * @return array|false
-     */
-    private function fetch_site_info() {
-        $transient_key = 'flywp_site_info';
-        $site_info     = get_transient( $transient_key );
-
-        if ( ! $site_info ) {
-            $site_info = flywp()->flyapi->site_info();
-
-            if ( isset( $site_info['error'] ) ) {
-                return false;
-            }
-
-            set_transient( $transient_key, $site_info, DAY_IN_SECONDS );
-        }
-
-        return $site_info;
-    }
-
-    /**
-     * Get site URL.
-     *
-     * @param array|false $info
-     *
-     * @return string
-     */
-    private function get_site_url( $info ) {
-        return flywp()->brand()->dashboard_url( $info ? $info['id'] : null );
     }
 }

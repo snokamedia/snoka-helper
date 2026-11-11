@@ -7,15 +7,6 @@ $settings = flywp()->email->settings();
             <h3 class="fw-text-lg fw-font-semibold fw-leading-6 fw-text-gray-900 fw-m-0">
                 <?php esc_html_e( 'Email Settings', 'flywp' ); ?>
             </h3>
-
-            <?php if ( $app_site_url !== '' ) { ?>
-            <div class="">
-                <a href="<?php echo esc_url( $app_site_url ); ?>/email" target="_blank" class="fw-no-underline fw-text-indigo-600">
-                    <span class="dashicons dashicons-external"></span>
-                    <?php esc_html_e( 'SMTP Configuration', 'flywp' ); ?>
-                </a>
-            </div>
-            <?php } ?>
         </div>
 
         <?php if ( isset( $_GET['message'] ) && $_GET['message'] === 'email-settings-saved' ) { ?>
